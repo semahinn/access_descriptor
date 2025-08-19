@@ -1,0 +1,20 @@
+{
+    "name": "snr/access_descriptor",
+    "description": "Описывает доступ",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Snr\\AccessDescriptor\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Semakhin Nikita",
+            "email": "nsemahinbk@mai.ru"
+        }
+    ],
+    "require": {
+		"php": ">=7.3",
+        "snr/plugin": "^1.0"
+	}
+}
