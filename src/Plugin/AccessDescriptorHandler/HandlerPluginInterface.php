@@ -2,18 +2,11 @@
 
 namespace Snr\AccessDescriptor\Plugin\AccessDescriptorHandler;
 
-use Snr\AccessDescriptor\HandlerInterface as BaseHandlerInterface;
+use Snr\AccessDescriptor\HandlerInterface;
 use Snr\Plugin\Plugin\PluginableInstanceInterface;
 
-interface HandlerInterface extends BaseHandlerInterface, PluginableInstanceInterface
+interface HandlerPluginInterface extends HandlerInterface, PluginableInstanceInterface
 {
-  /**
-   * @param array $options
-   *
-   * @return mixed
-   */
-  public static function create(array $options);
-
   /**
    * Возвращает определение плагина этого этапа
    *

@@ -5,7 +5,7 @@ namespace Snr\AccessDescriptor\Manager;
 use Snr\AccessDescriptor\Annotation\AccessDescriptorHandler;
 use Snr\AccessDescriptor\Factory\HandlerFactory;
 use Snr\AccessDescriptor\HandlerGroup;
-use Snr\AccessDescriptor\Plugin\AccessDescriptorHandler\HandlerInterface;
+use Snr\AccessDescriptor\Plugin\AccessDescriptorHandler\HandlerPluginInterface;
 use Snr\Plugin\Manager\ByPluginClassTrait;
 use Snr\Plugin\Manager\DefaultPluginManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -25,8 +25,8 @@ class HandlerPluginManager extends DefaultPluginManager implements HandlerPlugin
   public function __construct(array $namespaces, EventDispatcherInterface $event_dispatcher)
   {
     $this->eventDispatcher = $event_dispatcher;
-    parent::__construct('WorkflowItem', $namespaces, HandlerInterface::class, AccessDescriptorHandler::class);
-    $this->factory = new HandlerFactory($this, HandlerInterface::class);
+    parent::__construct("Plugin\AccessDescriptorHandler", $namespaces, HandlerPluginInterface::class, AccessDescriptorHandler::class);
+    $this->factory = new HandlerFactory($this, HandlerPluginInterface::class);
   }
 
   /**
@@ -45,7 +45,7 @@ class HandlerPluginManager extends DefaultPluginManager implements HandlerPlugin
     $handler = null;
     try
     {
-      $handler = new HandlerGroup($subjects);
+      $handler = new HandlerGroup($this, $subjects);
       if (count($handlers = $handler->getHandlers()) == 1)
         return current($handlers);
     }

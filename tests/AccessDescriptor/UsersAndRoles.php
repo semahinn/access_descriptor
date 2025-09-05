@@ -1,6 +1,6 @@
 <?php
 
-namespace Snr\AccessDescriptor\AccessDescriptor;
+namespace Snr\AccessDescriptor\Tests\AccessDescriptor;
 
 /**
  * Class UsersAndRoles

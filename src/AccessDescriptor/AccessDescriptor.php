@@ -2,10 +2,7 @@
 
 namespace Snr\AccessDescriptor\AccessDescriptor;
 
-use Snr\AccessDescriptor\Manager\HandlerPluginManager;
-use Snr\AccessDescriptor\Manager\HandlerPluginManagerInterface;
 use Snr\AccessDescriptor\HandlerInterface;
-use Snr\AccessDescriptor\ServicesFactory;
 
 /**
  * Class AccessDescriptor
@@ -33,7 +30,7 @@ use Snr\AccessDescriptor\ServicesFactory;
  * доступа каких - либо типов объектов ко всевозможным операциям с ними.
  * Лучшим решением будет создать класс, наследующий AccessDescriptor.
  */
-class AccessDescriptor implements AccessDescriptorInterface {
+abstract class AccessDescriptor implements AccessDescriptorInterface {
 
   /**
    * @var array
@@ -91,18 +88,17 @@ class AccessDescriptor implements AccessDescriptorInterface {
     $this->throwIfSdStringDiffWithOperations = $throw_if_sd_string_diff_with_operations;
 
     // $sd_value - строка в формате xml, необходимо проверить ее корректность
-    if ($access_value != null) $this->value = $this->dataToArray($access_value);
+    if ($access_value != null) $this->value = $this->decode($access_value);
   }
 
-  protected function dataToArray($sd_xml) {
-    // Получим xml объект из строки
-    $new = simplexml_load_string($sd_xml);
-    if (!$new)
-      throw new \InvalidArgumentException(
-        'Невозможно создать экземпляр SimpleXMLElement на основе строки с информацией о доступе');
+  /**
+   * @param mixed $access_value
+   * @return array
+   * @throws \Exception
+   */
+  protected function decode($access_value) {
 
-    $con = json_encode($new);
-    $decoded = json_decode($con, true);
+    $decoded = json_decode($access_value, true);
 
     $interface = AccessDescriptorInterface::class;
     // Ключами первого уровня должны быть операции
@@ -122,7 +118,7 @@ class AccessDescriptor implements AccessDescriptorInterface {
     if (count($decoded) == 1 && key($decoded) == 'default') {
       if ($this->throwIfSdStringDiffWithOperations && array_diff($this->operations, ['default']))
         throw new \Exception(
-          "Формат строки (xml) для описания экземпляра SecurityDescriptorInterface не " .
+          "Формат строки (xml) для описания экземпляра AccessDescriptorInterface не " .
           "совпадает с допустимыми операциями (см. {$interface}::getOperations())");
       $decoded_only_default = true;
     }
@@ -184,15 +180,7 @@ class AccessDescriptor implements AccessDescriptorInterface {
   /**
    * {@inheritdoc}
    */
-  public function getHandler() {
-    /**
-     * @var $plugin_manager HandlerPluginManagerInterface
-     */
-    $plugin_manager = ServicesFactory::getInstance()->getService(HandlerPluginManager::class);
-    if (!$this->handler)
-      $this->handler = $plugin_manager->getHandlerBySubjects($this->subjects);
-    return $this->handler;
-  }
+  public abstract function getHandler();
 
   /**
    * {@inheritdoc}
@@ -350,9 +338,7 @@ class AccessDescriptor implements AccessDescriptorInterface {
    */
   public function getAccessString() {
     if (empty($this->value)) return null;
-    $xml = new \SimpleXMLElement('<sd/>');
-    $this->toXml($xml, $this->value);
-    return $xml->asXML();
+    return json_encode($this->value);
   }
 
   /**
@@ -369,18 +355,4 @@ class AccessDescriptor implements AccessDescriptorInterface {
     return $this->getAccessString();
   }
 
-  protected function toXml(\SimpleXMLElement $object, $data) {
-    foreach ($data as $key => $value) {
-      if (is_array($value)) {
-        $new_obj = $object->addChild($key);
-        $this->toXml($new_obj, $value);
-      }
-      else {
-        if (is_numeric($key)) {
-          $key = "key_$key";
-        }
-        $object->addChild($key, $value);
-      }
-    }
-  }
 }

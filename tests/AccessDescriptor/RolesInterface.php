@@ -1,6 +1,8 @@
 <?php
 
-namespace Snr\AccessDescriptor\AccessDescriptor;
+namespace Snr\AccessDescriptor\Tests\AccessDescriptor;
+
+use Snr\AccessDescriptor\AccessDescriptor\AccessDescriptorInterface;
 
 interface RolesInterface extends AccessDescriptorInterface
 {

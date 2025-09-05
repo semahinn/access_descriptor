@@ -3,15 +3,17 @@
 namespace Snr\AccessDescriptor;
 
 use Snr\AccessDescriptor\AccessDescriptor\AccessDescriptorInterface;
-use Snr\AccessDescriptor\Manager\HandlerPluginManager;
 use Snr\AccessDescriptor\Manager\HandlerPluginManagerInterface;
+use Snr\AccessResult\AccessResultForbidden;
+use Snr\AccessResult\AccessResultNeutral;
+use Snr\Plugin\Exception\PluginException;
 
 /**
  * Class HandlerGroup
  *
- * Стандартная ситуация, когда экземпляр SecurityDescriptorInterface
+ * Стандартная ситуация, когда экземпляр AccessDescriptorInterface
  * настроен на несколько типов субъектов доступа ('users', 'roles' и т.д.),
- * когда у нас есть несколько ОБРАБОТЧИКОВ (SecurityDescriptorHandlerInterface)
+ * когда у нас есть несколько ОБРАБОТЧИКОВ (AccessDescriptorHandlerInterface)
  * под каждый тип субъекта доступа
  *
  * Тогда возникает задача свзять логику проверки из Roles и Users, ведь
@@ -20,7 +22,7 @@ use Snr\AccessDescriptor\Manager\HandlerPluginManagerInterface;
  *
  * Этот класс в своем методе access позволяет учесть результаты
  * доступа каждого из ОБРАБОТЧИКОВ, найденных для определенного экземпляра
- * security descriptor и объединить их, например, при помощи оператора ИЛИ
+ * access descriptor и объединить их, например, при помощи оператора ИЛИ
  *
  * Если требуется описать более сложную логику определения доступа одновременно
  * для нескольких субъектов доступа, то нужно создавать
@@ -31,6 +33,11 @@ use Snr\AccessDescriptor\Manager\HandlerPluginManagerInterface;
 class HandlerGroup implements HandlerGroupInterface
 {
   /**
+   * @var HandlerPluginManagerInterface
+   */
+  protected $pluginManager;
+
+  /**
    * @var HandlerInterface[]
    */
   protected $handlers = [];
@@ -38,18 +45,19 @@ class HandlerGroup implements HandlerGroupInterface
   /**
    * HandlerGroup constructor.
    *
+   * @param HandlerPluginManagerInterface $plugin_manager
+   *
    * @param array $subjects
    *
-   * @throws
+   * @throws PluginException
    */
-  public function __construct(array $subjects)
+  public function __construct(HandlerPluginManagerInterface $plugin_manager, array $subjects)
   {
+    $this->pluginManager = $plugin_manager;
+
     $candidates = [];
-    /**
-     * @var $plugin_manager HandlerPluginManagerInterface
-     */
-    $plugin_manager = ServicesFactory::getInstance()->getService(HandlerPluginManager::class);
-    $plugin_definitions = $plugin_manager->getDefinitions();
+
+    $plugin_definitions = $this->pluginManager->getDefinitions();
     foreach ($plugin_definitions as $definition) {
       $definition_subjects = $definition['subjects'];
       $matches = array_intersect($subjects, $definition_subjects);
@@ -74,11 +82,11 @@ class HandlerGroup implements HandlerGroupInterface
     foreach ($subjects as $subject) {
       if (!isset($candidates[$subject])) {
         throw new \Exception(
-          "Для типа субъекта '$subject' не удалось найти подходящего обработчика (см. SecurityDescriptorHandlerInterface)");
+          "Для типа субъекта '$subject' не удалось найти подходящего обработчика (" . HandlerInterface::class . ')');
       }
 
       $plugin_id = $candidates[$subject]['definition']['id'];
-      $results[$plugin_id] = $plugin_manager->createInstance($plugin_id, []);
+      $results[$plugin_id] = $this->pluginManager->createInstance($plugin_id, []);
     }
 
     $this->handlers = $results;
@@ -95,12 +103,13 @@ class HandlerGroup implements HandlerGroupInterface
   /**
    * {@inheritdoc}
    */
-  public function access(AccessDescriptorInterface $security_descriptor, $account, string $operation = 'all')
+  public function access(AccessDescriptorInterface $access_descriptor, $account, string $operation = 'all')
   {
-    $result = FALSE;
+    $result = new AccessResultNeutral();
     foreach ($this->handlers as $handler) {
-      if ($result)  break;
-      $result = $handler->access($security_descriptor, $account, $operation);
+      $handler_result = $handler->access($access_descriptor, $account, $operation);
+      if ($handler_result instanceof AccessResultForbidden) break;
+      $result = $result->orIf($handler_result);
     }
     return $result;
   }

@@ -3,19 +3,23 @@
 namespace Snr\AccessDescriptor;
 
 use Snr\AccessDescriptor\AccessDescriptor\AccessDescriptorInterface;
+use Snr\AccessResult\AccessResultInterface;
 
 interface HandlerInterface
 {
   /**
-   * @param AccessDescriptorInterface $security_descriptor
+   * Вычисляет доступ пользователя $account на основе
+   * данных из дескриптора доступа $access_descriptor
    *
-   * @param $account
+   * @param AccessDescriptorInterface $access_descriptor
+   *
+   * @param mixed $account
    *
    * @param string $operation
    *
-   * @return bool
+   * @return AccessResultInterface
    */
-  public function access(AccessDescriptorInterface $security_descriptor, $account, string $operation = 'all');
+  public function access(AccessDescriptorInterface $access_descriptor, $account, string $operation = 'all');
 
   /**
    * @return array

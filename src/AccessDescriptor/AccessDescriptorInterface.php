@@ -21,7 +21,7 @@ interface AccessDescriptorInterface
   public function getSubjects();
 
   /**
-   * Настройки, с которыми работает этот экземпляр SecurityDescriptorInterface
+   * Настройки, с которыми работает этот экземпляр AccessDescriptorInterface
    *
    * @return array
    */
@@ -107,7 +107,6 @@ interface AccessDescriptorInterface
   /**
    * @return string
    *  Возвращает значение (строку), описывающую доступ
-   *   Это значение устанавливается для поля security_descriptor сущности и является строкой
    */
   public function getAccessString();
 
