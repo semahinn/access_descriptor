@@ -20,13 +20,13 @@
     ],
     "require": {
 		"php": ">=7.3",
-		"snr/access_result": "^1.0",
         "ext-json": "*",
-		"symfony/event-dispatcher": "3.2.14",
-        "snr/plugin": "^1.0"
+        "snr/access_result": "^1.0",
+        "snr/plugin": "^1.0",
+        "symfony/event-dispatcher": "^3.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
-		"symfony/dependency-injection": "^3.2"
+        "symfony/dependency-injection": "^3.4"
     }
 }
