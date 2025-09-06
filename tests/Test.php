@@ -63,7 +63,7 @@ class Test extends TestCase {
     $access_result = $access_descriptor->access(User::dave());
 
     // Если мы попытаемся создать AccessDescriptor для недопустимого набора обработчков,
-    // а потом провреим доступ, то произойдёт исключение (обработчика 'abdc' не существует)
+    // а потом провреим доступ, то произойдёт исключение (обработчика для субъекта 'abdc' не существует)
     try {
       $access_descriptor = new AccessDescriptor(['users', 'abdc']);
       $access_descriptor->access(User::dave());
