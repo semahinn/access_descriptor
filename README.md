@@ -105,15 +105,6 @@ class UsersOrRoles extends HandlerPlugin
 
     // Создадим экземпляр AccessDescriptor из сохранённых значений
     $access_descriptor = new AccessDescriptor(['users', 'roles'], $access_value);
-
-    // Если мы попытаемся создать AccessDescriptor для недопустимого набора обработчков,
-    // а потом провреим доступ, то произойдёт исключение (обработчика 'abdc' не существует)
-    try {
-      $access_descriptor = new AccessDescriptor(['users', 'abdc']);
-      $access_descriptor->access(User::dave());
-    } catch (\Exception $ex) {
-      $message = $ex->getMessage();
-    }
 ```
 
 5. Вызвав метод access у экземпляра AccessDescriptor мы запускаем выполение логики во всех обработчиках. Если в определении доступа участвует несколько обработчиков, то их результаты объединяются с помощью логического ИЛИ.
